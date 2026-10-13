@@ -28,7 +28,7 @@ pub trait LastInsertedRowId {
 
 /// # Returns
 /// A string of `n` placeholders separated by commas.
-pub(super) fn format_placeholders<DB: FormatPlaceholder>(n: usize) -> String {
+pub fn format_placeholders<DB: FormatPlaceholder>(n: usize) -> String {
     (0..n)
         .map(|idx| DB::format_placeholder(idx))
         .collect::<Vec<String>>()
@@ -38,11 +38,25 @@ pub(super) fn format_placeholders<DB: FormatPlaceholder>(n: usize) -> String {
 /// # Returns
 /// A comma-delimited, double-quoted string of every column returned by [`Schema::columns`].
 /// For types with an id field this includes the id column (it is listed first by the derive).
-pub(super) fn comma_delimited_columns<S>() -> String
+pub fn comma_delimited_columns<S>() -> String
 where
     S: Schema,
 {
     <S as Schema>::columns()
+        .into_iter()
+        .map(|c| format!("\"{c}\""))
+        .collect::<Vec<String>>()
+        .join(",")
+}
+
+/// # Returns
+/// A comma-delimited, double-quoted string of every column returned by [`HasColumns::columns`]
+/// except the `id` column.
+pub fn comma_delimited_columns_no_id<S>() -> String
+where
+    S: HasColumns,
+{
+    <S as HasColumns>::columns()
         .into_iter()
         .map(|c| format!("\"{c}\""))
         .collect::<Vec<String>>()
